@@ -57,6 +57,7 @@
       
       chrome.browserAction.onClicked.addListener(function() {
         window.open('https://github.com/inbox/');
+        _gaq.push(['_trackEvent', "BrowserIcon", "Click"]);
       });
     </script>
     
