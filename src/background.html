@@ -1,0 +1,75 @@
+<html>
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+  </head>
+
+  <body>
+    <script>
+      var YELLOW = [255, 223, 1, 255];
+      var BLUE = [0, 128, 255, 255];
+      var INTERVAL_BETWEEN_GET_UNREAD_MESSAGES = 300000; // 5 mins in ms
+
+      function extractUnreadMessages(response){
+        var matches = response.match(/class="unread_count (?:new js-inbox-count)?">([^<]+)</);
+
+        if ((matches != null) && (matches.length == 2)) { 
+          var unreadMessages = matches[1];
+          return unreadMessages;
+        }
+
+        throw "notFound";
+      }
+      
+      function showUnreadMessages(response){
+        var unreadMessages = extractUnreadMessages(response);
+        chrome.browserAction.setBadgeBackgroundColor({color: BLUE});
+        chrome.browserAction.setBadgeText({text: unreadMessages});
+
+        var messagesInflection = (unreadMessages == 1 ? 'messages' : 'messages');
+        chrome.browserAction.setTitle({title: unreadMessages + " unread " + messagesInflection});
+      }
+
+      function getUnreadMessages(text){
+        var xhr = new XMLHttpRequest();
+        var url = 'https://github.com/';
+
+        xhr.open("GET", url, true);
+
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4) {
+            var response = xhr.response;
+            
+            try {
+              showUnreadMessages(response);
+            } catch (err) {
+              chrome.browserAction.setBadgeBackgroundColor({color: YELLOW});
+              chrome.browserAction.setBadgeText({text: '!'});              
+              chrome.browserAction.setTitle({title: "You should login on GitHub :)"});
+            };
+          }
+        }
+        xhr.send(null);
+      }
+
+      getUnreadMessages();
+      window.setInterval(function(){ getUnreadMessages(); }, INTERVAL_BETWEEN_GET_UNREAD_MESSAGES);
+      
+      chrome.browserAction.onClicked.addListener(function() {
+        window.open('https://github.com/inbox/');
+      });
+    </script>
+    
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-1639559-30']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+  </body>
+</html>
