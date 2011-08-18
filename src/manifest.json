@@ -1,6 +1,6 @@
 {
   "name": "GitHub Inbox",
-  "description" : "Shows a tooltip with your unread messages from GitHub",
+  "description" : "Shows a tooltip with your unread messages and notifications from GitHub",
 
   "version": "0.16",
   
