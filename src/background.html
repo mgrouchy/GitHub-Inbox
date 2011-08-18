@@ -8,52 +8,66 @@
     <script>
       var YELLOW = [255, 223, 1, 255];
       var BLUE = [0, 128, 255, 255];
-      var INTERVAL_BETWEEN_GET_UNREAD_MESSAGES = 300000; // 5 mins in ms
+      var INTERVAL_BETWEEN_GET_UNREAD_TOTAL = 300000; // 5 mins in ms
 
       function extractUnreadMessages(response){
-        var matches = response.match(/class="unread_count (?:new js-inbox-count)?">([^<]+)</);
+        var matches = response.match(/Inbox \(<span class='js-inbox-count'>([^<]+)</);
 
         if ((matches != null) && (matches.length == 2)) { 
-          var unreadMessages = matches[1];
-          return unreadMessages;
+          var unreadMessages = parseInt(matches[1]);
+          return parseInt(unreadMessages);
         }
 
-        throw "notFound";
-      }
-      
-      function showUnreadMessages(response){
-        var unreadMessages = extractUnreadMessages(response);
-        chrome.browserAction.setBadgeBackgroundColor({color: BLUE});
-        chrome.browserAction.setBadgeText({text: unreadMessages});
-
-        var messagesInflection = (unreadMessages == 1 ? 'messages' : 'messages');
-        chrome.browserAction.setTitle({title: unreadMessages + " unread " + messagesInflection});
+        return 0;
       }
 
-      function getUnreadMessages(text){
+      function extractUnreadNotifications(response){
+        var matches = response.match(/Notifications \(<span class='js-notification-count'>([^<]+)</);
+
+        if ((matches != null) && (matches.length == 2)) { 
+          var unreadNotifications = parseInt(matches[1]);
+          return unreadNotifications;
+        }
+
+        return 0;
+      }
+
+      function getUnreadTotal(text){
         var xhr = new XMLHttpRequest();
-        var url = 'https://github.com/';
+        var url = 'https://github.com/inbox';
 
         xhr.open("GET", url, true);
 
         xhr.onreadystatechange = function() {
           if (xhr.readyState == 4) {
             var response = xhr.response;
-            
-            try {
-              showUnreadMessages(response);
-            } catch (err) {
+
+            if (response.match(/<body class="logged_out/)) { // not logged in
               chrome.browserAction.setBadgeBackgroundColor({color: YELLOW});
               chrome.browserAction.setBadgeText({text: '!'});              
               chrome.browserAction.setTitle({title: "You should login on GitHub :)"});
-            };
+            } else { // logged in
+              var unreadMessages = extractUnreadMessages(response);
+              var unreadNotifications = extractUnreadNotifications(response);
+              var unreadTotal = (unreadMessages + unreadNotifications) + "";
+
+              chrome.browserAction.setBadgeBackgroundColor({color: BLUE});
+              chrome.browserAction.setBadgeText({text: unreadTotal});
+
+              var messagesInflection = (unreadMessages == 1 ? 'message' : 'messages');
+              var notificationsInflection = (unreadNotifications == 1 ? 'notification' : 'notifications');
+
+              var title = unreadMessages + " unread " + messagesInflection;
+              title += " and " + unreadNotifications + " unread " + notificationsInflection; 
+              chrome.browserAction.setTitle({title: title});
+            }
           }
         }
         xhr.send(null);
       }
 
-      getUnreadMessages();
-      window.setInterval(function(){ getUnreadMessages(); }, INTERVAL_BETWEEN_GET_UNREAD_MESSAGES);
+      getUnreadTotal();
+      window.setInterval(function(){ getUnreadTotal(); }, INTERVAL_BETWEEN_GET_UNREAD_TOTAL);
       
       chrome.browserAction.onClicked.addListener(function() {
         window.open('https://github.com/inbox/');
