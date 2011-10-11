@@ -1,19 +1,18 @@
 <html>
-
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
   </head>
 
   <body>
     <script>
       var YELLOW = [255, 223, 1, 255];
       var BLUE = [0, 128, 255, 255];
-      var INTERVAL_BETWEEN_GET_UNREAD_TOTAL = 300000; // 5 mins in ms
+      var INTERVAL_BETWEEN_GET_UNREAD_TOTAL = 90000; // 1.5 mins in ms
 
       function extractUnreadMessages(response){
         var matches = response.match(/Inbox \(<span class='js-inbox-count'>([^<]+)</);
 
-        if ((matches != null) && (matches.length == 2)) { 
+        if ((matches != null) && (matches.length == 2)) {
           var unreadMessages = parseInt(matches[1]);
           return parseInt(unreadMessages);
         }
@@ -24,7 +23,7 @@
       function extractUnreadNotifications(response){
         var matches = response.match(/Notifications \(<span class='js-notification-count'>([^<]+)</);
 
-        if ((matches != null) && (matches.length == 2)) { 
+        if ((matches != null) && (matches.length == 2)) {
           var unreadNotifications = parseInt(matches[1]);
           return unreadNotifications;
         }
@@ -44,7 +43,7 @@
 
             if (response.match(/<body class="logged_out/)) { // not logged in
               chrome.browserAction.setBadgeBackgroundColor({color: YELLOW});
-              chrome.browserAction.setBadgeText({text: '!'});              
+              chrome.browserAction.setBadgeText({text: '!'});
               chrome.browserAction.setTitle({title: "You should login on GitHub :)"});
             } else { // logged in
               var unreadMessages = extractUnreadMessages(response);
@@ -58,7 +57,7 @@
               var notificationsInflection = (unreadNotifications == 1 ? 'notification' : 'notifications');
 
               var title = unreadMessages + " unread " + messagesInflection;
-              title += " and " + unreadNotifications + " unread " + notificationsInflection; 
+              title += " and " + unreadNotifications + " unread " + notificationsInflection;
               chrome.browserAction.setTitle({title: title});
             }
           }
@@ -68,23 +67,10 @@
 
       getUnreadTotal();
       window.setInterval(function(){ getUnreadTotal(); }, INTERVAL_BETWEEN_GET_UNREAD_TOTAL);
-      
+
       chrome.browserAction.onClicked.addListener(function() {
         window.open('https://github.com/inbox/');
-        _gaq.push(['_trackEvent', "BrowserIcon", "Click"]);
       });
-    </script>
-    
-    <script type="text/javascript">
-      var _gaq = _gaq || [];
-      _gaq.push(['_setAccount', 'UA-1639559-30']);
-      _gaq.push(['_trackPageview']);
-
-      (function() {
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-      })();
     </script>
   </body>
 </html>
