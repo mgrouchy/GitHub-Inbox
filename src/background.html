@@ -8,6 +8,7 @@
       var YELLOW = [255, 223, 1, 255];
       var BLUE = [0, 128, 255, 255];
       var INTERVAL_BETWEEN_GET_UNREAD_TOTAL = 90000; // 1.5 mins in ms
+      var NOTIFICATION_URL = 'https://github.com/inbox/notifications';
 
       function extractUnreadMessages(response){
         var matches = response.match(/Inbox \(<span class='js-inbox-count'>([^<]+)</);
@@ -69,7 +70,7 @@
       window.setInterval(function(){ getUnreadTotal(); }, INTERVAL_BETWEEN_GET_UNREAD_TOTAL);
 
       chrome.browserAction.onClicked.addListener(function() {
-        window.open('https://github.com/inbox/');
+        window.open(NOTIFICATION_URL);
       });
     </script>
   </body>
